@@ -1,32 +1,34 @@
 <?php
-// login.php
+// signup.php
 
 // Start the session
 session_start();
 
 // Check if the form was submitted
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["login"])) {
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["signup"])) {
     // Input validation
     $username = filter_input(INPUT_POST, 'username', FILTER_SANITIZE_STRING);
+    $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
     $password = filter_input(INPUT_POST, 'password', FILTER_SANITIZE_STRING);
 
-    // Check if username and password are not empty
-    if (empty($username) || empty($password)) {
-        echo "Please enter both username and password.";
+    // Check if username, email, and password are not empty
+    if (empty($username) || empty($email) || empty($password)) {
+        echo "Please enter all required fields.";
         exit;
     }
 
     // Data to send in the POST request
     $data = array(
         "username" => $username,
+        "email" => $email,
         "password" => $password
     );
 
     // Convert data to JSON format
     $payload = json_encode($data);
 
-    // URL of the login endpoint
-    $url = "https://yourdomain.com/api/auth/login"; // Use HTTPS for security
+    // URL of the registration endpoint
+    $url = "https://yourdomain.com/api/auth/signup"; // Use HTTPS for security
 
     // Initialize cURL session
     $ch = curl_init($url);
@@ -52,18 +54,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["login"])) {
     // Decode the JSON response
     $responseData = json_decode($response);
 
-    // Check if authentication was successful
-    if ($responseData && isset($responseData->token)) {
-        // Authentication successful, save token and redirect to dashboard or home page
-        $token = $responseData->token;
-        // You can save the token in session or cookies for future requests
-        $_SESSION['token'] = $token; // Save the token in session
-        // Redirect to dashboard or home page
-        header("Location: dashboard.php");
+    // Check if registration was successful
+    if ($responseData && isset($responseData->message) && $responseData->message == 'User created successfully') {
+        // Registration successful, redirect to login page or dashboard
+        header("Location: login.php");
         exit;
     } else {
-        // Authentication failed, display error message
-        echo "Login failed. Please check your credentials.";
+        // Registration failed, display error message
+        echo "Registration failed. Please try again.";
     }
 }
 ?>
@@ -73,16 +71,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["login"])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Sign Up</title>
 </head>
 <body>
-    <h2>Login</h2>
+    <h2>Sign Up</h2>
     <form method="post">
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required><br><br>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br><br>
         <label for="password">Password:</label>
         <input type="password" id="password" name="password" required><br><br>
-        <button type="submit" name="login">Login</button>
+        <button type="submit" name="signup">Sign Up</button>
     </form>
 </body>
 </html>
